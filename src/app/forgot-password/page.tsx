@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { resetPassword } = useAuth();
+  const { resetPassword } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
       await resetPassword(email);
       setMessage('Check your email for the password reset link');
       setError('');
-    } catch (err) {
+    } catch {
       setError('Failed to send reset password email');
       setMessage('');
     }

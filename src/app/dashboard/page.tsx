@@ -1,12 +1,12 @@
 'use client';
 
-import { useAuth } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useAuthStore();
 
   const handleSignOut = async () => {
     await signOut();
