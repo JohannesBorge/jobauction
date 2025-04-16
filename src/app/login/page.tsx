@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, signIn, error, isLoading, checkSession } = useAuthStore();
@@ -24,19 +24,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     const initialize = async () => {
-      console.log('Initializing login page...');
       await checkSession();
       setIsInitialized(true);
-      console.log('Login page initialized');
     };
     initialize();
   }, [checkSession]);
 
   useEffect(() => {
-    console.log('User state changed:', { user, isLoading });
     if (user && !isLoading) {
       const redirectedFrom = searchParams.get('redirectedFrom');
-      console.log('Redirecting to:', redirectedFrom || '/dashboard');
       router.push(redirectedFrom || '/dashboard');
     }
   }, [user, isLoading, router, searchParams]);
@@ -50,7 +46,6 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    console.log('Form submitted:', data);
     try {
       await signIn(data.email, data.password);
     } catch (error) {
@@ -172,5 +167,30 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Loading...
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Please wait while we prepare your login form
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LoginFormContent />
+    </Suspense>
   );
 } 
