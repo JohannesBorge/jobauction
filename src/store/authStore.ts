@@ -33,13 +33,34 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
+      console.log('Attempting to sign in with:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error) throw error;
+      
+      console.log('Sign in response:', { data, error });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+      
+      if (!data?.user) {
+        console.error('No user data received');
+        throw new Error('No user data received');
+      }
+      
+      console.log('Setting user state:', data.user);
       set({ user: data.user as User });
+      
+      // Verify the session after setting the user
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
     } catch (error) {
+      console.error('Sign in failed:', error);
       set({ error: (error as Error).message });
     } finally {
       set({ isLoading: false });
@@ -109,8 +130,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true });
       const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('Session check:', { session, error });
+      
       if (error) throw error;
       if (session?.user) {
+        console.log('Setting user from session:', session.user);
         set({ user: session.user as User });
       }
     } catch (error) {

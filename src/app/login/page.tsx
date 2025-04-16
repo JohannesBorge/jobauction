@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,22 +15,31 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, signIn, error, isLoading, checkSession } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    checkSession();
+    const initialize = async () => {
+      console.log('Initializing login page...');
+      await checkSession();
+      setIsInitialized(true);
+      console.log('Login page initialized');
+    };
+    initialize();
   }, [checkSession]);
 
   useEffect(() => {
-    if (user) {
+    console.log('User state changed:', { user, isLoading });
+    if (user && !isLoading) {
       const redirectedFrom = searchParams.get('redirectedFrom');
+      console.log('Redirecting to:', redirectedFrom || '/dashboard');
       router.push(redirectedFrom || '/dashboard');
     }
-  }, [user, router, searchParams]);
+  }, [user, isLoading, router, searchParams]);
 
   const {
     register,
@@ -41,12 +50,30 @@ function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log('Form submitted:', data);
     try {
       await signIn(data.email, data.password);
     } catch (error) {
       console.error('Login failed:', error);
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Loading...
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Please wait while we prepare your login form
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -145,30 +172,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Loading...
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Please wait while we prepare your login form
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoadingState />}>
-      <LoginForm />
-    </Suspense>
   );
 } 
