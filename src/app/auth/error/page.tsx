@@ -1,14 +1,12 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error');
-  const errorDescription = searchParams.get('error_description');
   const { resendConfirmationEmail } = useAuthStore();
 
   const handleResendEmail = async () => {
@@ -24,10 +22,10 @@ export default function AuthErrorPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {error === 'access_denied' ? 'Link Expired' : 'Authentication Error'}
+            Link Expired
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {errorDescription || 'An error occurred during authentication.'}
+            The link you used has expired or is invalid.
           </p>
         </div>
 
@@ -69,5 +67,19 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Loading...</h2>
+        </div>
+      </div>
+    }>
+      <ErrorContent />
+    </Suspense>
   );
 } 
