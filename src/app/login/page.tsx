@@ -21,7 +21,6 @@ function LoginFormContent() {
   const { user, signIn, error, isLoading, checkSession, resendConfirmationEmail } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [showResendButton, setShowResendButton] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
@@ -76,7 +75,6 @@ function LoginFormContent() {
       const email = emailInput?.value;
       
       if (!email) {
-        setShowResendButton(false);
         return;
       }
 
