@@ -32,8 +32,22 @@ function LoginFormContent() {
 
   useEffect(() => {
     if (user && !isLoading) {
+      console.log('Redirect conditions met:', {
+        user: !!user,
+        isLoading,
+        userEmail: user?.email,
+        userConfirmed: user?.email_confirmed_at
+      });
       const redirectedFrom = searchParams.get('redirectedFrom');
-      router.push(redirectedFrom || '/dashboard');
+      const redirectPath = redirectedFrom || '/dashboard';
+      console.log('Attempting redirect to:', redirectPath);
+      router.push(redirectPath);
+    } else {
+      console.log('Redirect conditions not met:', {
+        user: !!user,
+        isLoading,
+        userEmail: user?.email
+      });
     }
   }, [user, isLoading, router, searchParams]);
 

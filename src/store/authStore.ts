@@ -9,6 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 interface User {
   id: string;
   email: string;
+  email_confirmed_at: string | null;
   user_metadata: {
     [key: string]: unknown;
   };
