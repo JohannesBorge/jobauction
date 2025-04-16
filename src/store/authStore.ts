@@ -182,13 +182,22 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session }, error } = await supabase.auth.getSession();
       console.log('Session check:', { session, error });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error getting session:', error);
+        set({ user: null });
+        return;
+      }
+      
       if (session?.user) {
         console.log('Setting user from session:', session.user);
         set({ user: session.user as User });
+      } else {
+        console.log('No active session found');
+        set({ user: null });
       }
     } catch (error) {
       console.error('Error checking session:', error);
+      set({ user: null });
     } finally {
       set({ isLoading: false });
     }

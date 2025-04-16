@@ -8,11 +8,19 @@ export async function middleware(req: NextRequest) {
 
   const {
     data: { session },
+    error,
   } = await supabase.auth.getSession();
+
+  console.log('Middleware session check:', { session: !!session, error });
+
+  // If there's an error getting the session, treat it as no session
+  if (error) {
+    console.error('Error getting session in middleware:', error);
+  }
 
   // If user is not signed in and the current path is not /login or /register
   // redirect the user to /login
-  if (!session && !['/login', '/register', '/forgot-password'].includes(req.nextUrl.pathname)) {
+  if (!session && !['/login', '/register', '/forgot-password', '/auth/callback'].includes(req.nextUrl.pathname)) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set(`redirectedFrom`, req.nextUrl.pathname);
