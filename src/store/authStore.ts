@@ -43,6 +43,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.log('Sign in response:', { data, error });
       
       if (error) {
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please confirm your email before signing in.');
+        }
         console.error('Sign in error:', error);
         throw error;
       }
@@ -52,16 +55,24 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('No user data received');
       }
       
+      if (!data.user.email_confirmed_at) {
+        throw new Error('Please confirm your email before signing in.');
+      }
+      
       console.log('Setting user state:', data.user);
       set({ user: data.user as User });
       
-      // Verify the session after setting the user
+      // Get the latest session
       const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Failed to establish session');
+      }
       console.log('Current session:', session);
       
     } catch (error) {
       console.error('Sign in failed:', error);
       set({ error: (error as Error).message });
+      throw error; // Re-throw to let the component handle the error
     } finally {
       set({ isLoading: false });
     }
