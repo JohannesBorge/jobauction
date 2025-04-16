@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 
@@ -17,14 +17,16 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, signIn, error, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      const redirectedFrom = searchParams.get('redirectedFrom');
+      router.push(redirectedFrom || '/dashboard');
     }
-  }, [user, router]);
+  }, [user, router, searchParams]);
 
   const {
     register,
