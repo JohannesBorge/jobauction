@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: 'https://jobauction.vercel.app/auth/callback',
         },
       });
       if (error) throw error;
@@ -116,7 +116,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: 'https://jobauction.vercel.app/auth/callback',
         },
       });
       if (error) throw error;
