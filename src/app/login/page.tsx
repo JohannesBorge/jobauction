@@ -18,9 +18,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, signIn, error, isLoading, checkSession } = useAuthStore();
+  const { user, signIn, error, isLoading, checkSession, resendConfirmationEmail } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     const initialize = async () => {
@@ -64,6 +66,25 @@ function LoginFormContent() {
       await signIn(data.email, data.password);
     } catch (error) {
       console.error('Login failed:', error);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      const form = document.querySelector('form');
+      const emailInput = form?.querySelector('input[type="email"]') as HTMLInputElement;
+      const email = emailInput?.value;
+      
+      if (!email) {
+        setShowResendButton(false);
+        return;
+      }
+
+      await resendConfirmationEmail(email);
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
     }
   };
 
@@ -152,6 +173,27 @@ function LoginFormContent() {
               <div className="flex">
                 <div className="ml-3">
                   <p className="text-sm font-medium text-red-800">{error}</p>
+                  {error.includes('Please confirm your email') && (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    >
+                      Resend verification email
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {resendSuccess && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-green-800">
+                    Verification email sent! Please check your inbox.
+                  </p>
                 </div>
               </div>
             </div>
