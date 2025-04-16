@@ -29,7 +29,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { signUp, error, isLoading } = useAuthStore();
+  const { signUp, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [errorState, setError] = useState<string | null>(null);
 
