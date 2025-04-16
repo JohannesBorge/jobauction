@@ -3,25 +3,43 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const { signIn } = useAuthStore();
+  const { checkSession } = useAuthStore();
 
   useEffect(() => {
     const handleCallback = async () => {
-      const email = localStorage.getItem('pendingEmail');
-      if (email) {
-        localStorage.removeItem('pendingEmail');
-        await signIn(email, 'temporary-password');
-        router.push('/dashboard');
-      } else {
+      try {
+        // Get the session from the URL hash
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          router.push('/login');
+          return;
+        }
+
+        if (session) {
+          // Update the auth store with the new session
+          await checkSession();
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Error in callback:', error);
         router.push('/login');
       }
     };
 
     handleCallback();
-  }, [router, signIn]);
+  }, [router, checkSession]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

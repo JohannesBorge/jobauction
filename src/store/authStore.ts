@@ -34,25 +34,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
-      console.log('Attempting to sign in with:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      console.log('Sign in response:', { data, error });
-      
       if (error) {
         if (error.message.includes('Email not confirmed')) {
           throw new Error('Please confirm your email before signing in.');
         }
-        console.error('Sign in error:', error);
         throw error;
       }
       
       if (!data?.user) {
-        console.error('No user data received');
         throw new Error('No user data received');
       }
       
@@ -60,20 +55,18 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('Please confirm your email before signing in.');
       }
       
-      console.log('Setting user state:', data.user);
-      set({ user: data.user as User });
+      // Ensure we have the latest session
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      // Get the latest session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Failed to establish session');
+      if (sessionData?.session?.user) {
+        set({ user: sessionData.session.user as User });
+      } else {
+        set({ user: data.user as User });
       }
-      console.log('Current session:', session);
       
     } catch (error) {
-      console.error('Sign in failed:', error);
       set({ error: (error as Error).message });
-      throw error; // Re-throw to let the component handle the error
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -81,13 +74,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
-      
-      // First check if user exists
-      const { data: existingUser } = await supabase.auth.admin.getUserById(email);
-      
-      if (existingUser) {
-        throw new Error('An account with this email already exists. Please sign in or use the "Resend confirmation email" option.');
-      }
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -143,18 +129,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   resendConfirmationEmail: async (email: string) => {
     try {
       set({ isLoading: true, error: null });
-      
-      // First check if user exists and is unconfirmed
-      const { data: { users } } = await supabase.auth.admin.listUsers();
-      const user = users?.find(u => u.email === email);
-      
-      if (!user) {
-        throw new Error('No account found with this email. Please sign up first.');
-      }
-      
-      if (user.email_confirmed_at) {
-        throw new Error('This email is already confirmed. Please sign in.');
-      }
 
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -180,23 +154,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true });
       const { data: { session }, error } = await supabase.auth.getSession();
-      console.log('Session check:', { session, error });
       
       if (error) {
-        console.error('Error getting session:', error);
         set({ user: null });
         return;
       }
       
       if (session?.user) {
-        console.log('Setting user from session:', session.user);
         set({ user: session.user as User });
       } else {
-        console.log('No active session found');
         set({ user: null });
       }
     } catch (error) {
-      console.error('Error checking session:', error);
       set({ user: null });
     } finally {
       set({ isLoading: false });
