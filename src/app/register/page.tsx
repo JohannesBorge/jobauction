@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { signUp, error, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorState, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -41,8 +42,13 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
-    await signUp(data.email, data.password);
-    router.push('/verify-email');
+    try {
+      await signUp(data.email, data.password);
+      localStorage.setItem('pendingEmail', data.email);
+      router.push('/auth/verify-email');
+    } catch (error) {
+      setError((error as Error).message);
+    }
   };
 
   return (
@@ -115,8 +121,8 @@ export default function RegisterPage() {
             </label>
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+          {errorState && (
+            <div className="text-red-600 text-sm text-center">{errorState}</div>
           )}
 
           <div>
