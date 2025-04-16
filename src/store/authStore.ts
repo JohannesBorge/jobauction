@@ -16,6 +16,7 @@ interface User {
 
 interface AuthState {
   user: User | null;
+  session: any | null;
   isLoading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
@@ -27,6 +28,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  session: null,
   isLoading: false,
   error: null,
   signIn: async (email: string, password: string) => {
@@ -37,9 +39,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
       });
       if (error) throw error;
-      set({ user: data.user as User });
+      set({ user: data.user as User, session: data.session });
     } catch (error) {
-      set({ error: (error as Error).message });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -55,9 +57,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         },
       });
       if (error) throw error;
-      set({ user: data.user as User });
+      set({ user: data.user as User, session: data.session });
     } catch (error) {
-      set({ error: (error as Error).message });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -67,9 +69,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: true, error: null });
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      set({ user: null });
+      set({ user: null, session: null });
     } catch (error) {
-      set({ error: (error as Error).message });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -82,7 +84,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (error) throw error;
     } catch (error) {
-      set({ error: (error as Error).message });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -99,7 +101,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (error) throw error;
     } catch (error) {
-      set({ error: (error as Error).message });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
