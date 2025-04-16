@@ -133,7 +133,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: true, error: null });
       
       // First check if user exists and is unconfirmed
-      const { data: { users }, error: checkError } = await supabase.auth.admin.listUsers();
+      const { data: { users } } = await supabase.auth.admin.listUsers();
       const user = users?.find(u => u.email === email);
       
       if (!user) {
