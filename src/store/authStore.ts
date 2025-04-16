@@ -23,6 +23,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendConfirmationEmail: (email: string) => Promise<void>;
+  checkSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -100,6 +101,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (error) throw error;
     } catch (error) {
       set({ error: (error as Error).message });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  checkSession: async () => {
+    try {
+      set({ isLoading: true });
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (session?.user) {
+        set({ user: session.user as User });
+      }
+    } catch (error) {
+      console.error('Error checking session:', error);
     } finally {
       set({ isLoading: false });
     }

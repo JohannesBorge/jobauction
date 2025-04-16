@@ -10,7 +10,11 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
-  const { user, isLoading } = useAuthStore();
+  const { user, isLoading, checkSession } = useAuthStore();
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   useEffect(() => {
     if (!isLoading && !user) {

@@ -18,8 +18,12 @@ type LoginFormData = z.infer<typeof loginSchema>;
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, signIn, error, isLoading } = useAuthStore();
+  const { user, signIn, error, isLoading, checkSession } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   useEffect(() => {
     if (user) {
