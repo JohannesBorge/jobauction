@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useAuth } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
