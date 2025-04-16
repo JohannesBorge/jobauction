@@ -69,6 +69,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async (email: string, password: string) => {
     try {
       set({ isLoading: true, error: null });
+      
+      // First check if user exists
+      const { data: existingUser } = await supabase.auth.admin.getUserById(email);
+      
+      if (existingUser) {
+        throw new Error('An account with this email already exists. Please sign in or use the "Resend confirmation email" option.');
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -76,7 +84,18 @@ export const useAuthStore = create<AuthState>((set) => ({
           emailRedirectTo: 'https://jobauction.vercel.app/auth/callback',
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        if (error.message.includes('already registered')) {
+          throw new Error('An account with this email already exists. Please sign in or use the "Resend confirmation email" option.');
+        }
+        throw error;
+      }
+      
+      if (!data.user) {
+        throw new Error('Failed to create account. Please try again.');
+      }
+      
       set({ user: data.user as User });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -112,6 +131,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   resendConfirmationEmail: async (email: string) => {
     try {
       set({ isLoading: true, error: null });
+      
+      // First check if user exists and is unconfirmed
+      const { data: { users }, error: checkError } = await supabase.auth.admin.listUsers();
+      const user = users?.find(u => u.email === email);
+      
+      if (!user) {
+        throw new Error('No account found with this email. Please sign up first.');
+      }
+      
+      if (user.email_confirmed_at) {
+        throw new Error('This email is already confirmed. Please sign in.');
+      }
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
@@ -119,7 +151,13 @@ export const useAuthStore = create<AuthState>((set) => ({
           emailRedirectTo: 'https://jobauction.vercel.app/auth/callback',
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        if (error.message.includes('already confirmed')) {
+          throw new Error('This email is already confirmed. Please sign in.');
+        }
+        throw error;
+      }
     } catch (error) {
       set({ error: (error as Error).message });
     } finally {
